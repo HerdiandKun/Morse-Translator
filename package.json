@@ -1,0 +1,19 @@
+{
+  "name": "nlp-node",
+  "version": "1.0.0",
+  "description": "tugas nlp",
+  "main": "server.js",
+  "dependencies": {
+    "body-parser": "^1.17.2",
+    "jsonfile": "^3.0.0",
+    "node-wav": "0.0.2",
+    "nodehmm": "^0.0.3",
+    "sound-parameters-extractor": "^1.4.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "init"
+  },
+  "author": "HerdiandKun",
+  "license": "ISC"
+}
