@@ -6,6 +6,9 @@ Dataset/*
 uji
 uji/*
 
+weight
+weight/*
+
 composer.lock
 
 
