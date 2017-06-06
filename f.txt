@@ -1,0 +1,11 @@
+foto
+tanggal lahir get tanggal ketika edit
+tanggal validasi start date selected
+
+
+service
+foto
+tanggal_kunjungan
+waktu_kunjungan
+
+Mas maaf mau nanya, ini detail sistemdan cara 

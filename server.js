@@ -11,23 +11,37 @@ var express = require('express');
 var app = express();
 var port = process.env.PORT || 8080;
 
+
 //Depedency jsonfile
 var jsonfile = require('jsonfile')
 
 //dependency for body parser
 var bodyParser = require('body-parser');
-app.use(bodyParser.json()); // support json encoded bodies
-app.use(bodyParser.urlencoded({ extended: true })); 
+app.use(bodyParser.json({limit: '500mb'}));
+app.use(bodyParser.urlencoded({limit: '500mb', extended: true,  parameterLimit: 10000000 }));
+
+app.use(function (req, res, next) {
+
+    // Website you wish to allow to connect
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:8012');
+
+    // Request methods you wish to allow
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+
+    // Request headers you wish to allow
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+
+    // Set to true if you need the website to include cookies in the requests sent
+    // to the API (e.g. in case you use sessions)
+    res.setHeader('Access-Control-Allow-Credentials', true);
+
+    // Pass to next layer of middleware
+    next();
+});
 
 //fungsi mfcc
 function mfcc_function(signal, sRate){
-	const config = {
-		fftSize: 32,
-		bankCount: 24,
-		lowFrequency: 1,
-		highFrequency: sRate / 2, // samplerate/2 here 
-		sampleRate: sRate
-	};
+	drops5 <- c("jekel","tahun_masuk","tahun_keluar","lama_studi", "fakultas")
 	const windowSize = config.fftSize * 2;
 	const overlap = '50%';
 	const mfccSize = 13;
@@ -74,14 +88,17 @@ function read_wav(file){
 	return data;
 }
 
-app.get('/api/nlp', function(req, res) {
+app.post('/api/nlp', function(req, res) {
   /*var user_id = req.param('id');
   var token = req.param('token');
   var geo = req.param('geo');  */
-  
- 
-  res.send(JSON.stringify(nfcc));
-  //console.log(samRate);
+  var data = [];
+  data = req.body.buffer_data;
+	var arr = Object.values(data);
+  console.log("Berhasil");
+  console.log(Object.keys(data).length);
+  return "Berhasil";
+//console.log(samRate);
 });
 
 app.get('/api/make_training_data', function(req,res){
