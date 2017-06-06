@@ -56,7 +56,7 @@ function calc(cl, dt, dimen, bobot) {
     //     console.log(d[i]);
     // }
 
-    console.log("Data Minimum" + d.indexOf(Math.min.apply(null, d)));
+    //console.log("Data Minimum" + d.indexOf(Math.min.apply(null, d)));
     var min_index = d.indexOf(Math.min.apply(null, d));
     return min_index;
     // echo 'Data Minimum : '.min( d).
@@ -67,10 +67,8 @@ function calc(cl, dt, dimen, bobot) {
 }
 
 function update(kelas, dimensi, d, bobot, dt, alpha, radius, target) {
-    console.log("Test" + target);
-
     if (d == target) {
-        console.log("Target SAMA");
+        //console.log("Target SAMA");
         for (; radius >= 0; radius--) {
             for (j = 0; j < dimensi; j++) {
                 if (radius != 0) {
@@ -86,7 +84,7 @@ function update(kelas, dimensi, d, bobot, dt, alpha, radius, target) {
             }
         }
     } else {
-        console.log("Target TIDAK SAMA");
+        //console.log("Target TIDAK SAMA");
         for (; radius >= 0; radius--) {
             for (j = 0; j < dimensi; j++) {
                 if (radius != 0) {
@@ -102,26 +100,26 @@ function update(kelas, dimensi, d, bobot, dt, alpha, radius, target) {
             }
         }
     }
-    console.log("BOBOT BARU");
+    /*console.log("BOBOT BARU");
 
     for (i = 0; i < kelas; i++) {
         for (j = 0; j < dimensi; j++) {
             console.log("bobot  i  j =" + bobot[i][j]);
         }
-    }
+    }*/
     return bobot;
 }
 
 exports.main = function() {
-    for (ep = 1; ep <= this.epoch; ep++) {
+    var bob = [];
+	for (ep = 1; ep <= this.epoch; ep++) {
         for (k = 0; k < this.data.length;) {
-            console.log(k);
             var selected_class = calc(this.Class, this.data[k], this.dimensi, this.weight);
-            update(this.Class, this.dimensi, selected_class, this.weight, this.data[k], this.alpha, this.radius, this.target[k]);
-
+            bob = update(this.Class, this.dimensi, selected_class, this.weight, this.data[k], this.alpha, this.radius, this.target[k]);
+			this.setWeight(bob);
             k++;
         }
         this.alpha = this.alpha * this.ralpha;
     }
-    console.log(this.Class);
+    //console.log(this.Class);
 }

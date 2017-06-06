@@ -5,6 +5,7 @@ const {framer, mfcc} = require('sound-parameters-extractor');
 //Depedency readWAV
 let fs = require('fs');
 let wav = require('node-wav'); 
+let Lvq = require('./lvq.js');
 
 //Depedency Exspress 
 var express = require('express');
@@ -195,6 +196,38 @@ app.get('/api/bobot', function(req,res){
 	})
 	console.log(array_data);
 	res.send("Data Bobot selesai aja dulu dibuat");
+});
+
+app.get('/api/train_data_lvq',function(req,res){
+	var jumlah_data = 10;
+	var kelas = 2;
+	var bobot = new Array();
+	var target = new Array();
+	file = 'data_latih.json'
+	file_bobot = 'bobot.json'
+	k=0;
+	var data = new Array();
+	for(i=1;i<=kelas;i++){
+		for(j=0;j<jumlah_data;j++){
+			data.push(jsonfile.readFileSync(file)['Kelas ke '+i][j]);
+			k++;
+			target.push(i-1);
+		}
+		bobot.push(jsonfile.readFileSync(file_bobot)['Kelas ke '+i]);
+	}
+	const config = {
+		dimensi: 13
+	};
+	Lvq.constructor(config);
+
+		Lvq.setTarget(target);
+		Lvq.setData(data);
+		Lvq.setWeight(bobot);
+		console.log(Lvq.weight);
+		console.log("BOBOT BARU==============");
+		//console.log(Lvq.data);
+		Lvq.main();
+		console.log(Lvq.weight);
 });
 
 function toObject(arr) {
