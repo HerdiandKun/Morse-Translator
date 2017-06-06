@@ -43,14 +43,14 @@ app.use(function (req, res, next) {
 //fungsi mfcc
 function mfcc_function(signal, sRate){
 	const config = {
-	  fftSize: 32,
+	  fftSize: 1,
 	  bankCount: 24,
 	  lowFrequency: 1,
 	  highFrequency: sRate/2, // samplerate/2 here 
 	  sampleRate: sRate
 	};
 	const windowSize = config.fftSize * 2;
-	const overlap = '50%';
+	const overlap = '39%';
 	const mfccSize = 13;
 
 	//console.log(signal);
@@ -216,18 +216,49 @@ app.get('/api/train_data_lvq',function(req,res){
 		bobot.push(jsonfile.readFileSync(file_bobot)['Kelas ke '+i]);
 	}
 	const config = {
-		dimensi: 13
+		dimensi: 13,
+		epoch : 200,
+		alpha : 0.3
 	};
 	Lvq.constructor(config);
-
+		console.log(Lvq.alpha);
 		Lvq.setTarget(target);
 		Lvq.setData(data);
 		Lvq.setWeight(bobot);
-		console.log(Lvq.weight);
-		console.log("BOBOT BARU==============");
+		//console.log(Lvq.weight);
+		console.log("BOBOT BARU	==============");
 		//console.log(Lvq.data);
 		Lvq.main();
-		console.log(Lvq.weight);
+		var file = './bobot_baru.json';
+		var obj = toObject(Lvq.weight);
+		jsonfile.writeFile(file, obj, function (err) {
+		  console.error(err)
+		})
+		console.log(Lvq.alpha);
+});
+app.get('/api/test_data_lvq',function(req,res){
+	const config = {
+		dimensi: 13
+	};
+	Lvq.constructor(config);
+	var jumlah_data = 6;
+	var kelas = 2;
+	var bobot = new Array();
+	file = 'data_uji.json'
+	file_bobot = 'bobot_baru.json'
+	k=0;
+	var data = new Array();
+	for(i=1;i<=kelas;i++){
+		for(j=0;j<jumlah_data;j++){
+			data.push(jsonfile.readFileSync(file)['Kelas ke '+i][j]);
+			k++;
+		}
+		bobot.push(jsonfile.readFileSync(file_bobot)['Kelas ke '+i]);
+	}
+	
+	Lvq.setDataTest(data);
+	Lvq.setWeight(bobot);
+	Lvq.test();
 });
 
 function toObject(arr) {

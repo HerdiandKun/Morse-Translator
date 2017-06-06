@@ -1,5 +1,6 @@
 var dimensi, Class, epoch, alpha, ralpha, radius, weight;
 var data = [];
+var data_test = [];
 var target = [];
 
 exports.constructor = function(config) {
@@ -27,6 +28,11 @@ exports.setWeight = function(weight) {
 exports.setData = function(data) {
     this.data = data;
 }
+
+exports.setDataTest = function(data_test) {
+    this.data_test = data_test;
+}
+
 exports.setTarget = function(target) {
     this.target = target;
 }
@@ -122,4 +128,11 @@ exports.main = function() {
         this.alpha = this.alpha * this.ralpha;
     }
     //console.log(this.Class);
+}
+
+exports.test = function() {
+        for (l = 0; l < this.data_test.length;l++) {
+            var selected_class = calc(this.Class, this.data_test[l], this.dimensi, this.weight);     
+			console.log(selected_class);
+		}   
 }
