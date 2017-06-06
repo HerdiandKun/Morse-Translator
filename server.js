@@ -40,11 +40,122 @@ app.use(function (req, res, next) {
     next();
 });
 
+function isSilent(sum){
+	if(sum < 10){
+		return true;
+	}else{
+		return false;
+	}
+}
+
+
+//fungsi segmentasi()
+function segmentation(signal, sampleRate, pjSegment){
+	len = sampleRate * pjSegment;
+	array_utama =  new Array();
+	temp_array = new Array();
+	var status = false;
+	var k = 0;
+	for(i=0;i<signal.length;i += len){
+		sum = 0
+		if(i+len < signal.length){
+			for(j=i;j<i+len;j++){
+				sum += signal[j] * signal[j];
+				//console.log(sum);
+			}
+			
+			var silent = isSilent(sum);
+			if(!silent){
+				var start = i;
+				var end = i+len + 1;
+				//console.log("masuk konkat" + signal.slice(start,end));
+				temp_array = temp_array.concat(signal.slice(start,end));
+				status = true;
+			}else{
+				if(status)
+					array_utama[k++] = temp_array;
+				//console.log("masuk push" + array_utama);
+				temp_array = [];
+				status = false;
+			}
+		}else{
+			for(j=i;j<signal.length;j++){
+				sum += signal[j]*signal[j];
+			}
+			var silent = isSilent(sum);
+			if(!silent){
+				var start = i;
+				var end = signal.length;
+				temp_array = temp_array.concat(signal.slice(start,end));
+				array_utama[k++] = temp_array;
+				
+			}else{
+				array_utama[k++] = temp_array;
+				temp_array = [];
+			}
+		}
+		
+	}
+	//console.log(array_utama);
+	console.log(signal.length);
+	console.log(array_utama.length);
+	for(a=0;a<array_utama.length;a++)
+		console.log(array_utama[a].length);
+	
+	console.log(morse_translate(array_utama,sampleRate));
+	console.log(morse_decode(morse_translate(array_utama,sampleRate)));
+}
+
+function morse_translate(arr,fs){
+	var str ="";
+	var treshold = fs * 0.5;
+	for(i=0;i<arr.length;i++){
+		if(arr[i].length < treshold){
+			str += 'T'; 
+		}else{
+			str += 'P';
+		}
+	}
+	return str;
+}
+
+function morse_decode(str){
+	switch(str){
+		case  'TP'     : return 'A';
+		case  'PTTT'   : return 'B';
+		case  'PTPT'   : return 'C';
+		case  'PTT'    : return 'D';
+		case  'T'      : return 'E';
+		case  'TTPT'   : return 'F';
+		case  'PPT'    : return 'G';
+		case  'TTTT'   : return 'H';
+		case  'TT'     : return 'I';
+		case  'TPPP'   : return 'J';
+		case  'PTP'    : return 'K';
+		case  'TPTT'   : return 'L';
+		case  'PP'     : return 'M';
+		case  'PT'     : return 'N';
+		case  'PPP'    : return 'O';
+		case  'TPPT'   : return 'P';
+		case  'PPTP'   : return 'Q';
+		case  'TPT'    : return 'R';
+		case  'TTT'    : return 'S';
+		case  'P'      : return 'T';
+		case  'TTP'    : return 'U';
+		case  'TTTP'   : return 'V';
+		case  'TPP'    : return 'W';
+		case  'PTTP'   : return 'X';
+		case  'PTPP'   : return 'Y';
+		case  'PPTT'   : return 'Z';
+		default        : return '-';
+	}
+}
+
 //fungsi mfcc
 function mfcc_function(signal, sRate){
 	const config = {
 	  fftSize: 1,
-	  bankCount: 24,
+	  bankCount: 21,
 	  lowFrequency: 1,
 	  highFrequency: sRate/2, // samplerate/2 here 
 	  sampleRate: sRate
@@ -65,14 +176,15 @@ function mfcc_function(signal, sRate){
 	return mfccMatrix(fft.util.fftMag(phasors));
 	});
  
-	//console.log(mfccSignal);
+	console.log(mfccSignal);
 	
 	var mfccRataan = new Array();
 	for(i=0;i<13;i++){
 		var sum = 0;
-		for(j=0;j<mfccSignal.length;j++){
-			sum += mfccSignal[j][i];
+		for(j=0; j < mfccSignal.length ; j++){
+			sum += mfccSignal[j][i];			
 		}
+		//console.log("DJumlah " + sum +"/"+ mfccSignal.length);
 		mfccRataan.push(sum/mfccSignal.length);
 	}
 	
@@ -99,13 +211,19 @@ app.post('/api/nlp', function(req, res) {
   /*var user_id = req.param('id');
   var token = req.param('token');
   var geo = req.param('geo');  */
-  var data = [];
   data = req.body.buffer_data;
-	var arr = Object.values(data);
   console.log("Berhasil");
-  console.log(Object.keys(data).length);
-  return "Berhasil";
+  //console.log(Object.keys(data).length);
+ res.send("Berhasil");
 //console.log(samRate);
+});
+
+app.get('/api/coba_segment', function(req,res){
+	var wav_data = read_wav('1.wav');
+	var signal = Array.prototype.slice.call(wav_data['channelData']);
+	var samRate = wav_data['samplingRate'];
+	segmentation(signal,samRate,0.12);
+	res.send("Stop IT");
 });
 
 app.get('/api/make_training_data', function(req,res){
@@ -235,16 +353,17 @@ app.get('/api/train_data_lvq',function(req,res){
 		  console.error(err)
 		})
 		console.log(Lvq.alpha);
+		res.send("Pelatihan Selesai");
 });
 app.get('/api/test_data_lvq',function(req,res){
 	const config = {
 		dimensi: 13
 	};
 	Lvq.constructor(config);
-	var jumlah_data = 6;
+	var jumlah_data = 10;
 	var kelas = 2;
 	var bobot = new Array();
-	file = 'data_uji.json'
+	file = 'data_latih.json'
 	file_bobot = 'bobot_baru.json'
 	k=0;
 	var data = new Array();
@@ -259,6 +378,7 @@ app.get('/api/test_data_lvq',function(req,res){
 	Lvq.setDataTest(data);
 	Lvq.setWeight(bobot);
 	Lvq.test();
+	res.send("Testing selesai");
 });
 
 function toObject(arr) {
