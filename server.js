@@ -41,7 +41,13 @@ app.use(function (req, res, next) {
 
 //fungsi mfcc
 function mfcc_function(signal, sRate){
-	drops5 <- c("jekel","tahun_masuk","tahun_keluar","lama_studi", "fakultas")
+	const config = {
+	  fftSize: 32,
+	  bankCount: 24,
+	  lowFrequency: 1,
+	  highFrequency: sRate/2, // samplerate/2 here 
+	  sampleRate: sRate
+	};
 	const windowSize = config.fftSize * 2;
 	const overlap = '50%';
 	const mfccSize = 13;
@@ -103,14 +109,14 @@ app.post('/api/nlp', function(req, res) {
 
 app.get('/api/make_training_data', function(req,res){
 	var jumlah_data = 10;
-	var data_awal = 41;
-	var kelas = 26;
-	var data = new Array();
-	var array_kelas = new Array();
+	var data_awal = 1;
+	var kelas = 2;
+	var data = [];
+	var array_kelas = [];
 	for (iter=1;iter<=kelas; iter++){
-			var array_data = new Array();
+			var array_data = [];
 			for(jter=data_awal; jter < data_awal + jumlah_data; jter++ ){
-				var wav_data = read_wav('Dataset/C'+iter+'/'+jter+'.wav');
+				var wav_data = read_wav('Dataset/latih_2/C'+iter+'/'+jter+'.wav');
 				var signal = Array.prototype.slice.call(wav_data['channelData']);
 				var samRate = wav_data['samplingRate'];
 				var nfcc = mfcc_function(signal,samRate);
@@ -135,15 +141,15 @@ app.get('/api/make_training_data', function(req,res){
 });
 
 app.get('/api/make_testing_data', function(req,res){
-	var jumlah_data = 1;
+	var jumlah_data = 6;
 	var data_awal = 1;
-	var kelas = 26;
+	var kelas = 2;
 	var data = new Array();
 	var array_kelas = new Array();
 	for (iter=1;iter<=kelas; iter++){
 			var array_data = new Array();
 			for(jter=data_awal; jter < data_awal + jumlah_data; jter++ ){
-				var wav_data = read_wav('uji/C'+iter+'/'+jter+'.wav');
+				var wav_data = read_wav('Dataset/uji_2/C'+iter+'/'+jter+'.wav');
 				var signal = Array.prototype.slice.call(wav_data['channelData']);
 				var samRate = wav_data['samplingRate'];
 				var nfcc = mfcc_function(signal,samRate);
@@ -168,11 +174,11 @@ app.get('/api/make_testing_data', function(req,res){
 
 app.get('/api/bobot', function(req,res){
 	var jumlah_data = 1;
-	var kelas = 26;
+	var kelas = 2;
 	var array_data = new Array();
 	for (iter=1;iter<=kelas;iter++){
 				
-				var wav_data = read_wav('weight/'+iter+'.wav');
+				var wav_data = read_wav('Dataset/latih_2/weight/'+iter+'.wav');
 				var signal = Array.prototype.slice.call(wav_data['channelData']);
 				var samRate = wav_data['samplingRate'];
 				var nfcc = mfcc_function(signal,samRate);
