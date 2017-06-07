@@ -136,3 +136,10 @@ exports.test = function() {
 			console.log(selected_class);
 		}   
 }
+
+exports.test_live = function() {
+	//console.log(this.weight);
+	//console.log(this.data_test);
+	var selected_class = calc(this.Class, this.data_test, this.dimensi, this.weight); 	
+	return selected_class;
+}

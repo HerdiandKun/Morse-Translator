@@ -86,17 +86,21 @@ function segmentation(signal, sampleRate, pjSegment){
 			if(!silent){
 				var start = i;
 				var end = signal.length;
+				
 				temp_array = temp_array.concat(signal.slice(start,end));
 				array_utama[k++] = temp_array;
+				status = true;
 				
 			}else{
-				array_utama[k++] = temp_array;
+				if(status)
+					array_utama[k++] = temp_array;
 				temp_array = [];
+				status = false;
 			}
 		}
 		
 	}
-	//console.log(array_utama);
+	/*
 	console.log(signal.length);
 	console.log(array_utama.length);
 	for(a=0;a<array_utama.length;a++)
@@ -104,6 +108,8 @@ function segmentation(signal, sampleRate, pjSegment){
 	
 	console.log(morse_translate(array_utama,sampleRate));
 	console.log(morse_decode(morse_translate(array_utama,sampleRate)));
+	*/
+	return array_utama;
 }
 
 function morse_translate(arr,fs){
@@ -176,7 +182,7 @@ function mfcc_function(signal, sRate){
 	return mfccMatrix(fft.util.fftMag(phasors));
 	});
  
-	console.log(mfccSignal);
+	//console.log(mfccSignal);
 	
 	var mfccRataan = new Array();
 	for(i=0;i<13;i++){
@@ -208,13 +214,53 @@ function read_wav(file){
 }
 
 app.post('/api/nlp', function(req, res) {
-  /*var user_id = req.param('id');
-  var token = req.param('token');
-  var geo = req.param('geo');  */
-  data = req.body.buffer_data;
-  console.log("Berhasil");
-  //console.log(Object.keys(data).length);
- res.send("Berhasil");
+	console.log("Start");
+	var sRate = 48000;
+	var obj = req.body.buffer_data;
+	var kelas = 2;
+	var pj = req.body.panjang;
+	var obj_baru = JSON.parse(obj);
+	var bobot = new Array();
+	var new_data = new Array();
+	obj_baru.length = pj;
+	var hasil = '';
+	var myarray = Array.prototype.slice.call(obj_baru,0,pj);
+	file_bobot = 'bobot_baru.json';
+	for(i=1;i<=kelas;i++){
+		bobot.push(jsonfile.readFileSync(file_bobot)['Kelas ke '+i]);
+	}
+	//====================LVQ Setting================================//
+	const config = {
+		dimensi: 13
+	};
+	Lvq.constructor(config);
+	Lvq.setWeight(bobot);
+	
+	var awal = segmentation(myarray,sRate,0.52);
+		console.log(awal.length);
+		for(aw=0;aw < awal.length;aw++){
+			console.log(aw);
+			var huruf = segmentation(awal[aw],sRate,0.12);
+			for(a=0;a<huruf.length;a++){
+				var nfcc = mfcc_function(huruf[a],sRate);
+				console.log(nfcc.length);
+				Lvq.setDataTest(nfcc);
+				var ret = Lvq.test_live();
+				console.log(ret);
+				if(ret == 1)
+					new_data.push(huruf[a]);
+				console.log(huruf[a].length);
+			}
+				
+			var trs = morse_translate(new_data,sRate);
+			var str = morse_decode(trs);
+			console.log(trs);
+			console.log(str);
+			hasil += str;
+		}
+	console.log("Berhasil");
+	//console.log(Object.keys(data).length);
+	res.send("Hasil = "+hasil);
 //console.log(samRate);
 });
 
@@ -363,8 +409,8 @@ app.get('/api/test_data_lvq',function(req,res){
 	var jumlah_data = 10;
 	var kelas = 2;
 	var bobot = new Array();
-	file = 'data_latih.json'
-	file_bobot = 'bobot_baru.json'
+	file = 'data_latih.json';
+	file_bobot = 'bobot_baru.json';
 	k=0;
 	var data = new Array();
 	for(i=1;i<=kelas;i++){
